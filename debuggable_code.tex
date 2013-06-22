@@ -1,0 +1,112 @@
+\documentclass[14pt]{beamer}
+\input{include/pygments}
+
+% \usepackage{beamerthemesplit} // Activate for custom appearance
+\setbeamertemplate{navigation symbols}{}%remove navigation symbols
+
+
+\newlength{\wideitemsep}
+\setlength{\wideitemsep}{\itemsep}
+\addtolength{\wideitemsep}{10pt}
+\let\olditem\item
+\renewcommand{\item}{\setlength{\itemsep}{\wideitemsep}\olditem}
+
+\begin{document}
+
+\title{Debuggable by Design}
+\author{@ConradIrwin}
+\date{\today}
+\frame{\titlepage}
+
+\frame
+{
+  \newcommand{\reversibledebuggingsoftware}{
+   \footnote{``Reversible Debugging Software'', Cambridge 2013. \href{http://bit.ly/12ZygP3}{\color{blue}{bit.ly/12ZygP3}}}
+  }
+
+  \begin{itemize}
+  \item<1-> Programmers spend 49.9\%\reversibledebuggingsoftware of their time debugging.
+  \item<2-> This costs $ \$ 312,000,000,000 $ per year.
+  \item<3-> Takes time away from fun stuff :).
+  \end{itemize}
+}
+
+\frame
+{
+  \frametitle{Debugging 101}
+
+  \begin{enumerate}
+  \item[1.]<1-> Run the code, see that it's broken.
+  \item[0.]<2-> Find and remove the bug.
+  \item[1.]<3-> Run the code, see that it's fixed.
+  \end{enumerate}
+}
+
+\frame
+{
+  \frametitle{Debuggable code lets you:}
+
+  \begin{itemize}
+  \item<1-> Run small fragments standalone.
+  \item<2-> Tell whether code is running correctly.
+  \item<3-> Infer where the problem is.
+  \end{itemize}
+}
+
+\frame{
+  \frametitle{Example of bad code in pry}
+
+  \begin{itemize}
+  \item Pry::Commands::Edit ``method name''
+  \item --- \alert<4->{ Uses Pry::CodeObject to get a method }
+  \item --- \alert<3->{ Invokes MethodPatcher(pry, method) }
+  \item \hskip 1em --- \alert<2->{ Uses pry.edit to open code in vim }
+  \item \hskip 1em --- \alert<1->{\em Evals the changed source code }
+  \end{itemize}
+}
+
+\begin{frame}[fragile]
+  \frametitle{Minimal example for bad code}
+  \input{build/code/bad_minimal.rb}
+\end{frame}
+
+\frame{
+  \frametitle{Refactoring we made}
+
+  \begin{itemize}
+  \item Pry::Commands::Edit ``method name''
+  \item --- \alert<2->{ Uses Pry::CodeObject to get a method }
+  \item --- { Uses pry.edit to open method.source in vim }
+  \item --- \alert<2->{ MethodPatcher.new(method, source) }
+  \item \hskip 1em --- \alert<1->{\em Evals the changed source code }
+  \end{itemize}
+}
+
+\begin{frame}[fragile]
+  \frametitle{Minimal example post-refactoring}
+  \input{build/code/good_minimal.rb}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Minimal example in master today}
+  \input{build/code/best_minimal.rb}
+\end{frame}
+
+\frame{
+
+  \begin{itemize}
+
+  \item All of this change was for step 1.
+  \item ``Run the code, see it's broken''.
+  \item ``Run the code, see it's fixed''.
+
+  \end{itemize}
+
+}
+
+\frame{
+  \frametitle{Make it easy to see if it worked}
+
+}
+
+\end{document}
