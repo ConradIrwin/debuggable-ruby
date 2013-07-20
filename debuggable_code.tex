@@ -1,9 +1,13 @@
 \documentclass[14pt]{beamer}
+
 \input{include/pygments}
+\input{include/itemspace}
+\input{include/no-navigation}
 
 % \usepackage{beamerthemesplit} // Activate for custom appearance
 \setbeamertemplate{navigation symbols}{}%remove navigation symbols
 
+\usepackage{ulem}
 
 \newlength{\wideitemsep}
 \setlength{\wideitemsep}{\itemsep}
@@ -13,100 +17,356 @@
 
 \begin{document}
 
-\title{Debuggable by Design}
+\title{Debuggable Ruby}
 \author{@ConradIrwin}
 \date{\today}
 \frame{\titlepage}
 
+{
+\usebackgroundtemplate{\includegraphics[height=\paperheight]{img/sad-panda.jpg}}
+\begin{frame}[plain]
+\end{frame}
+}
+
 \frame
 {
-  \newcommand{\reversibledebuggingsoftware}{
-   \footnote{``Reversible Debugging Software'', Cambridge 2013. \href{http://bit.ly/12ZygP3}{\color{blue}{bit.ly/12ZygP3}}}
-  }
+  \begin{exampleblock}{}
+    {\large ``Beware of bugs in the above code; I have only proved it correct, not tried it.''}
+    \vskip5mm
+    \hspace*\fill{\small--- Donald Knuth}
+  \end{exampleblock}
+}
+
+\frame
+{
+  \frametitle{Dealing with bugs}
+
+  \begin{description}
+  \item[Java]<1-> Let's make interfaces simple enough that bugs don't happen.
+  \item[Haskell]<2-> Let's make the type-system powerful enough to catch all bugs.
+  \item[Ruby]<3-> Bugs happen anyway, let's make it really easy to debug.
+  \end{description}
+}
+
+\frame
+{
+  \frametitle{Debugging process}
 
   \begin{itemize}
-  \item<1-> Programmers spend 49.9\%\reversibledebuggingsoftware of their time debugging.
-  \item<2-> This costs $ \$ 312,000,000,000 $ per year.
-  \item<3-> Takes time away from fun stuff :).
+  \item Find something that's broken.
+  \item Narrow it down until you know why it's broken.
+  \item Fix the underlying cause.
+  \item Check that it now works.
+  \end{itemize}
+}
+
+\newcommand{\keyword}[1]{{\color{yellow!50!black}#1}}
+\newcommand{\quoted}[1]{{\color{green!60!black}#1}}
+
+\frame
+{
+  \frametitle{How people debug}
+
+  \setbeamercovered{transparent}
+  \begin{itemize}
+  \item<1-3>
+        \only<1>{\texttt{\keyword{puts} foo.inspect }}
+        \only<2->{\texttt{\keyword{p} foo}}
+  \item<1-3> \texttt{\keyword{raise} \quoted{"zomg wtf bbq"} \textbf{if} foo? }
+  \item<1-3> Run the code in \texttt{rails c}
+  \item<1-3> Read the code\ldots
+  \item<3-4> \texttt{{\color{yellow!60!black} binding}.pry}
   \end{itemize}
 }
 
 \frame
 {
-  \frametitle{Debugging 101}
+  \frametitle{Debuggable code}
 
-  \begin{enumerate}
-  \item[1.]<1-> Run the code, see that it's broken.
-  \item[0.]<2-> Find and remove the bug.
-  \item[1.]<3-> Run the code, see that it's fixed.
-  \end{enumerate}
+  \begin{itemize}
+  \item Easy to inspect objects.
+  \item Easy to run short snippets.
+  \item Easy to locate the problem.
+  \end{itemize}
+
 }
 
 \frame
 {
-  \frametitle{Debuggable code lets you:}
+  \frametitle{\texttt{Object\#inspect} in Ruby}
 
   \begin{itemize}
-  \item<1-> Run small fragments standalone.
-  \item<2-> Tell whether code is running correctly.
-  \item<3-> Infer where the problem is.
-  \end{itemize}
-}
-
-\frame{
-  \frametitle{Example of bad code in pry}
-
-  \begin{itemize}
-  \item Pry::Commands::Edit ``method name''
-  \item --- \alert<4->{ Uses Pry::CodeObject to get a method }
-  \item --- \alert<3->{ Invokes MethodPatcher(pry, method) }
-  \item \hskip 1em --- \alert<2->{ Uses pry.edit to open code in vim }
-  \item \hskip 1em --- \alert<1->{\em Evals the changed source code }
+  \item Lists all instance variables by default.
+  \item Almost always good enough.
+  \item Override if the default is too noisy.
+  \item Override if you define \texttt{\#to\_s}.
   \end{itemize}
 }
 
 \begin{frame}[fragile]
-  \frametitle{Minimal example for bad code}
+  \input{build/code/object_inspect.rb}
+  \tiny
+  \input{build/code/object_inspect_output.rb}
+\end{frame}
+
+\begin{frame}[fragile]
+  \input{build/code/active_record_inspect.rb}
+  \input{build/code/active_record_inspect_output.rb}
+\end{frame}
+
+\begin{frame}[fragile]
+  \input{build/code/object_inspect_url.rb}
+  \vskip0.5in
+  \input{build/code/url_inspect.rb}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Getting the default \texttt{\#inspect} back}
+  \small
+  \input{build/code/default_inspect.rb}
+\end{frame}
+
+\newcommand{\crossout}[1]{\only<1>{#1} \only<2>{\sout{#1}}}
+\frame
+{
+  \frametitle{Debuggable code}
+
+
+  \begin{itemize}
+  \item \crossout{Easy to inspect objects.}
+  \item Easy to run short snippets.
+  \item Easy to locate the problem.
+  \end{itemize}
+
+}
+
+\frame
+{
+  \frametitle{Example from pry}
+
+  \begin{itemize}
+  \item Pry lets you edit methods: \hfill \\
+        \texttt{[1] pry(main)> edit Module\#inspect}.
+  \item Bug in the edit command.
+  \item \texttt{edit Module.inspect} would sometimes redefine \texttt{Module\#inspect}.
+  \end{itemize}
+
+}
+
+\frame
+{
+  \frametitle{Hard to debug}
+
+  \begin{itemize}
+  \item Pry::Commands::Edit ``method name''
+  \item --- \alert<3->{Uses Pry::CodeObject to get a method }
+  \item --- \alert<2->{Invokes MethodPatcher(pry, method) }
+  \item \hskip 1em --- \alert<2->{Uses pry.edit to open code in vim }
+  \item \hskip 1em --- \alert<1->{Evals the changed source code }
+  \end{itemize}
+}
+
+\begin{frame}[fragile]
+  \frametitle{Minimal test case\ldots}
+  \input{build/code/terrible_minimal.rb}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Minimal test case\ldots}
   \input{build/code/bad_minimal.rb}
 \end{frame}
 
-\frame{
-  \frametitle{Refactoring we made}
-
-  \begin{itemize}
-  \item Pry::Commands::Edit ``method name''
-  \item --- \alert<2->{ Uses Pry::CodeObject to get a method }
-  \item --- { Uses pry.edit to open method.source in vim }
-  \item --- \alert<2->{ MethodPatcher.new(method, source) }
-  \item \hskip 1em --- \alert<1->{\em Evals the changed source code }
-  \end{itemize}
-}
-
 \begin{frame}[fragile]
-  \frametitle{Minimal example post-refactoring}
+  \frametitle{Minimal test case\ldots}
   \input{build/code/good_minimal.rb}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Minimal example in master today}
+  \frametitle{Minimal test case\ldots}
   \input{build/code/best_minimal.rb}
 \end{frame}
 
-\frame{
+\frame
+{
+  \frametitle{Debuggable code}
 
   \begin{itemize}
+  \item \sout{Easy to inspect objects.}
+  \item \crossout{Easy to run short snippets.}
+  \item Easy to locate the problem.
+  \end{itemize}
+}
 
-  \item All of this change was for step 1.
-  \item ``Run the code, see it's broken''.
-  \item ``Run the code, see it's fixed''.
+\frame
+{
+  \frametitle{Don't rescue nil}
 
+  \small
+  \input{build/code/broken_find_command_for_help.rb}
+}
+\frame
+{
+  \frametitle{Don't rescue nil}
+
+  \small
+  \input{build/code/find_command_for_help.rb}
+}
+
+\frame
+{
+  \frametitle{When in doubt, \texttt{raise}}
+
+  \small
+  \input{build/code/do_delivery.rb}
+}
+
+\frame
+{
+  \frametitle{Preserve \texttt{\_\_FILE\_\_} and \texttt{\_\_LINE\_\_}}
+
+  \small
+  \input{build/code/define_callbacks.rb}
+}
+
+\frame
+{
+  \frametitle{Preserve \texttt{\_\_FILE\_\_} and \texttt{\_\_LINE\_\_}}
+
+  \small
+  \input{build/code/rackup_builder.rb}
+}
+
+\frame
+{
+  \frametitle{Good code is debuggable}
+
+  \begin{itemize}
+  \item Single Responsibility Principle
+  \item Seperation of Concerns.
+  \item KISS.
+  \end{itemize}
+}
+
+\frame
+{
+  \frametitle{Final words}
+
+  \begin{itemize}
+  \item Programmers spend 50 -- 85\% of their time debugging.
+  \item Costs the world \$312,000,000 each year.
+  \item A little effort goes a long way.
   \end{itemize}
 
 }
 
-\frame{
-  \frametitle{Make it easy to see if it worked}
+\frame
+{
+  \frametitle{Thanks}
+
+  \center{@ConradIrwin}
 
 }
 
 \end{document}
+
+% Continuous debugment, Continuous deployment.
+
+% Good afternoon everyone!
+%
+% I have a secret I want to share.
+%
+% When I write code, it doesn't work.
+%
+% ----
+%
+% Well, it does sometimes. But pretty rarely. Let's say 95% of the time, I run
+% my shiny new code, it crashes and burns.  This makes me a sad panda.
+%
+% But then I remember something Knuth once said. You know Knuth, he wrote "The
+% Art of Computer Programming", and "TeX", and stuff.  he's pretty clever by
+% all accounts.
+%
+% Beware of bugs in the above code. I've merely proved it correct, not tried
+% it.
+%
+% Turns out Knuth has a secret too.
+%
+% When he writes code, it doesn't work.
+%
+% Well, I guess it does sometimes. Probably even more often than me. But even
+% he runs his code to see whether it works.
+%
+% ----
+%
+% It turns out that most debugging happens during the time you're writing code.
+% Obviously there are the really hard to find ones that only happen after
+% you've deployed to production. But pretty much always, code breaks beacuse
+% you tried to change it.
+%
+% In different language communities there are different attempts to solve this:
+%
+%   Java: Let's hide everything behind simple interfaces so it's easy to write
+%   correct code.  Haskell: Let's make the type-system powerful enough to find
+%   all the bugs before you do.  Ruby: Screw it, bugs happen. Let's make it
+%   super-easy to debug.
+%
+% Let's face it, if you could have a compiler find bugs for you; wouldn't that
+% be better than having to find the bugs yourself?  Surely we should all be
+% using Haskell or Clojure or w/e. The problem is that though compilers are
+% very good at spotting bugs, they're not very good at telling you what caused
+% it.  In ruby, the language makes it really easy to find out what's going on.
+% You can just add a print statement, every object has a default implementation
+% of #inspect that lets you get a pretty god idea of what's going on. If you'd
+% prefer, you can even add a binding.pry, which if it were written in java
+% would probably be called an AbstractPrintStatementFactory. It's really there
+% to let you make as many print statements as you need until you've found the
+% problem.
+%
+% As usual, with great power comes great responsibility. Ruby is designed to
+% make it easy to debug programs, but it requires buy in from the people who
+% use it to make this work well.
+%
+% -----
+%
+% Luckily it turns out that making programs easy to debug mostly coincides with
+% all the other things we'd want to do anyway.
+%
+%   Single-purpose methods
+%   Use layers of abstraction
+%   Good string representations of objects
+%
+% ----
+%
+% Let's deal with the last one first, because it's the easiest to explain.
+%
+% How do you debug?
+%
+% I was looking for two answers:
+%  1. puts statements
+%  2. binding.pry
+%
+% In every language ever made, all programmers have always used puts statements.
+% Why?
+% They show you something you can understand.
+% In ruby everyone should use pry, because:
+%
+%  1. You won't mis-type it.
+%  2. You have time to figure out what to print.
+%  3. It pauses the program so you don't have to scan through the logs
+%
+% But, both print statements and binding.pry require your object to be easy to see.
+%
+% In ruby, this can be configured by overriding Object#inspect.
+% Now usually you don't need to bother the builtin inspect has a few huge advantages:
+%
+%  It shows you everything
+%  It's safe with recursive objects
+%  It's in a format everyone already knows how to read
+%
+% But there are some times when you should override inspect:
+%
+%  If your object contains secrets (like passwords)
+%  If your object contains massive amounts of text (like xml blobs)
+%  If you override #to_s or #to_str
+%
+

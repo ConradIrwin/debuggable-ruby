@@ -1,0 +1,72 @@
+
+Programmer's spend 60% of their time debugging.
+=> only 40% of time writing code.
+
+Debugging tools are getting better, pry; pry-rescue, etc.
+
+But, they still can't help all the time.
+
+So, write code that is easy to debug.
+
+----
+
+Luckily code that's easy to debug also matches other criteria:
+
+1. It's maintainable (by definition)
+2. It tends to be well factored
+3. 
+
+In fact I'd go as far as to say that all the other qualities that code is
+supposed to have are approximations for easy to debug: that's what you're
+going to spend most of your time doing after all.
+
+----
+
+1. Layers of abstraction
+
+2. Small methods
+
+3. Layers of abstraction
+
+4. Don't over-generalize
+
+----
+
+1.
+
+2.
+
+Bugs happen *somewhere*, it's important to be able to tell where.  More
+importantly, it's important to be able to rule out swathes of the code-base
+that are working as expected.
+
+
+
+3.
+                 ,--> [ Pry::CodeLookup ]
+               /                   |
+             /                     v
+[ Pry::Commands::Edit ] --> [ Pry::Method ]
+              \                    |
+                \                  v
+                 `--> [ Pry::Commands::Edit::MethodPatcher ]
+
+
+----->
+
+                 ,--> [ Pry::CodeLookup ]
+               /                   |
+             /                     v
+[ Pry::Commands::Edit ] --> [ Pry::Method ] --> [ Pry::Method::Patcher ]
+
+4.
+
+```ruby
+  def all_from_common(obj, method_type, include_super=true)
+    %w(public protected private).map do |visibility|
+      safe_send(obj, :"#{visibility}_#{method_type}s", include_super).map do |method_name|
+        new(safe_send(obj, method_type, method_name), :visibility => visibility.to_sym)
+      end
+    end.flatten(1)
+  end
+```

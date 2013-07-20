@@ -1,0 +1,11 @@
+digraph G {
+
+  "Pry::Commands::Edit" -> "Pry::Method"
+  "Pry::Commands::Edit" -> "Pry::Commands::Edit::MethodPatcher"
+  "Pry::Commands::Edit" -> "Pry::CodeObject"
+  "Pry::CodeObject" -> "Pry::Method"
+  "Pry::Commands::Edit::MethodPatcher" -> "Pry::Method"
+  "Pry::Commands::Edit::MethodPatcher" -> "Pry::Editor"
+  "Pry::Commands::Edit::MethodPatcher" -> "Pry::Code"
+  "Pry::Method" -> "Pry::Code"
+}

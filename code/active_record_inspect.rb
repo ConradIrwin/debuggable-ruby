@@ -1,0 +1,1 @@
+Authorization::Base.first.inspect

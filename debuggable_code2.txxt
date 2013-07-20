@@ -1,0 +1,33 @@
+
+
+  Debugability — the missing quality.
+
+----
+
+Here's a little secret:
+
+    your code doesn't work
+
+[ Just out of interest, how many of you have deployed some code to production without even running it first? ]
+[ Ok. And how many of you regretted it? ]
+
+-----
+
+So as we all know, programming is a two-phase process:
+
+1. design and write code
+2. make it f**king work
+
+[ When I was just starting out in the programming game, I assumed that once I reached a certain level,
+  I'd not need to do step 2 anymore. I don't think I could have been more wrong. ]
+
+-----
+
+What's even more interesting is the distribution of effort between those two steps:
+
+1. design and write code [ ?? % ] 40%
+2. make it f**king work [ 100 - ?? % ] 60%
+
+[ This means that programmers are really just debuggers in disguise ]
+
+------
